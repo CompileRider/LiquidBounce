@@ -25,6 +25,7 @@ import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.ClientModule
 import net.ccbluex.liquidbounce.render.FontManager
+import net.ccbluex.liquidbounce.render.FontManager.font
 import net.ccbluex.liquidbounce.render.engine.type.Color4b
 import net.ccbluex.liquidbounce.render.renderEnvironmentForGUI
 import net.ccbluex.liquidbounce.utils.block.bed.BedBlockTracker
@@ -48,15 +49,13 @@ object ModuleBedPlates : ClientModule("BedPlates", Category.RENDER), BedBlockTra
     override val maxLayers by int("MaxLayers", 5, 1..5).onChanged {
         BedBlockTracker.triggerRescan()
     }
+    private val font by font("Font")
     private val scale by float("Scale", 1.5f, 0.5f..3.0f)
     private val renderOffset by vec3d("RenderOffset", Vec3d.ZERO)
     private val maxDistance by float("MaxDistance", 256.0f, 128.0f..1280.0f)
     private val maxCount by int("MaxCount", 8, 1..64)
     private val highlightUnbreakable by boolean("HighlightUnbreakable", true)
     private val compact by boolean("Compact", true)
-
-    private val fontRenderer
-        get() = FontManager.FONT_RENDERER
 
     private class BedStateAndDistance(@JvmField val bedState: BedState, @JvmField val distanceSq: Double)
 
@@ -82,7 +81,7 @@ object ModuleBedPlates : ClientModule("BedPlates", Category.RENDER), BedBlockTra
     @Suppress("unused")
     private val renderHandler = handler<OverlayRenderEvent> { event ->
         renderEnvironmentForGUI {
-            fontRenderer.withBuffers { buf ->
+            font.renderer.withBuffers { buf ->
                 bedStatesWithSquaredDistance.forEach {
                     val bedState = it.bedState
                     val screenPos = WorldToScreen.calculateScreenPos(bedState.pos.add(renderOffset))

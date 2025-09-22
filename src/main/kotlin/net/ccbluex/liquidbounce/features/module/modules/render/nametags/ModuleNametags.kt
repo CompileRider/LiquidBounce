@@ -48,8 +48,7 @@ object ModuleNametags : ClientModule("Nametags", Category.RENDER) {
 
     internal val drawnEnchantmentAreas = mutableListOf<Pair<Float, Float>>()
 
-    val fontRenderer
-        get() = font.renderer
+    val fontRenderer get() = font.renderer
 
     private val nametagsToRender by computedOn<GameTickEvent, MutableList<Nametag>>(
         initialValue = mutableListOf()

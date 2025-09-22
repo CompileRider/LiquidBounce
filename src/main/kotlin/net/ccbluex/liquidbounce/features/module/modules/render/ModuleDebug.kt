@@ -33,6 +33,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.ClientModule
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffold.ModuleScaffold
 import net.ccbluex.liquidbounce.render.*
+import net.ccbluex.liquidbounce.render.FontManager.font
 import net.ccbluex.liquidbounce.render.engine.type.Color4b
 import net.ccbluex.liquidbounce.utils.client.*
 import net.ccbluex.liquidbounce.utils.entity.PlayerSimulationCache
@@ -65,8 +66,7 @@ object ModuleDebug : ClientModule("Debug", Category.RENDER) {
 
     private val expireTime by int("Expires", 5, 1..30, "secs")
 
-    private val fontRenderer
-        get() = FontManager.FONT_RENDERER
+    private val font by font("Font")
 
     object RenderSimulatedPlayer : ToggleableConfigurable(this, "SimulatedPlayer", false) {
 
@@ -110,7 +110,7 @@ object ModuleDebug : ClientModule("Debug", Category.RENDER) {
             val context = event.context
 
             renderEnvironmentForGUI {
-                fontRenderer.withBuffers { buffers ->
+                font.renderer.withBuffers { buffers ->
                     with(context) {
                         draw(
                             process("Graph".asText()),
@@ -230,7 +230,7 @@ object ModuleDebug : ClientModule("Debug", Category.RENDER) {
         }
 
         renderEnvironmentForGUI {
-            fontRenderer.withBuffers { buffers ->
+            font.renderer.withBuffers { buffers ->
                 /**
                  * Separate the debugged owner from its parameter
                  * Structure should be like this:
@@ -273,28 +273,26 @@ object ModuleDebug : ClientModule("Debug", Category.RENDER) {
                 }
 
                 // Draw
-                with(context) {
+                draw(
+                    process("Debugging".asText()),
+                    120f,
+                    22f,
+                    shadow = true,
+                    scale = 0.3f
+                )
+
+                // Draw text line one by one
+                textList.forEachIndexed { index, text ->
                     draw(
-                        process("Debugging".asText()),
+                        process(text),
                         120f,
-                        22f,
+                        40f + ((this@withBuffers.height * 0.17f) * index),
                         shadow = true,
-                        scale = 0.3f
+                        scale = 0.17f
                     )
-
-                    // Draw text line one by one
-                    textList.forEachIndexed { index, text ->
-                        draw(
-                            process(text),
-                            120f,
-                            40 + ((fontRenderer.height * 0.17f) * index).toFloat(),
-                            shadow = true,
-                            scale = 0.17f
-                        )
-                    }
-
-                    commit(buffers)
                 }
+
+                commit(buffers)
             }
         }
     }

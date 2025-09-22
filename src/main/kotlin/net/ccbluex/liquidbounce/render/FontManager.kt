@@ -43,8 +43,8 @@ object FontManager {
     /**
      * Creates a font value. The choices will be sync with [fontFaces].
      */
-    fun Configurable.font(name: String) =
-        enumChoice(name, COMMON_FONT, fontFaces.values).apply {
+    fun Configurable.font(name: String, default: FontFace = COMMON_FONT) =
+        enumChoice(name, default, fontFaces.values).apply {
             FONT_VALUES += this
             doNotIncludeAlways()
         }
@@ -111,15 +111,6 @@ object FontManager {
     init {
         addFontFace(COMMON_FONT)
     }
-
-    /**
-     * The active font renderer that all text rendering will be based on.
-     *
-     * TODO: Replaces this with Module-based Font Selection
-     */
-    @Deprecated("Replaced with font choice")
-    val FONT_RENDERER
-        get() = (fontFace("Inter Regular") ?: COMMON_FONT).renderer
 
     /**
      * Since our font renderer does not support dynamic font size changes,

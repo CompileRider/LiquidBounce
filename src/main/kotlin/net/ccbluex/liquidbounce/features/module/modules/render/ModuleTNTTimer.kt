@@ -29,6 +29,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.ClientModule
 import net.ccbluex.liquidbounce.render.*
 import net.ccbluex.liquidbounce.render.FontManager
+import net.ccbluex.liquidbounce.render.FontManager.font
 import net.ccbluex.liquidbounce.render.engine.type.Color4b
 import net.ccbluex.liquidbounce.render.engine.type.Vec3
 import net.ccbluex.liquidbounce.utils.entity.box
@@ -54,12 +55,13 @@ object ModuleTNTTimer : ClientModule("TNTTimer", Category.RENDER) {
     val esp by boolean("ESP", true)
 
     private object ShowTimer : ToggleableConfigurable(this, "ShowTimer", false) {
-        val scale by float("Scale", 1.5F, 0.25F..4F)
-        val renderY by float("RenderY", 1.0F, -2.0F..2.0F)
-        val border by boolean("Border", true)
-        val timeUnit by enumChoice("TimeUnit", TimeUnit.TICKS)
+        private val font by font("Font")
+        private val scale by float("Scale", 1.5F, 0.25F..4F)
+        private val renderY by float("RenderY", 1.0F, -2.0F..2.0F)
+        private val border by boolean("Border", true)
+        private val timeUnit by enumChoice("TimeUnit", TimeUnit.TICKS)
 
-        enum class TimeUnit(override val choiceName: String): NamedChoice, IntFunction<String> {
+        private enum class TimeUnit(override val choiceName: String): NamedChoice, IntFunction<String> {
             TICKS("Ticks"),
             SECONDS("Seconds");
 
@@ -70,6 +72,66 @@ object ModuleTNTTimer : ClientModule("TNTTimer", Category.RENDER) {
         }
 
         private val SECONDS_FORMAT = DecimalFormat("0.00s")
+
+        @Suppress("unused")
+        private val render2DHandler = handler<OverlayRenderEvent> {
+            renderEnvironmentForGUI {
+                font.renderer.withBuffers { buf ->
+                    val c = size
+                    val fontScale = 1.0F / (c * 0.15F) * ShowTimer.scale
+
+                    tntEntities.forEachWithSelf { tnt, i, self ->
+                        if (tnt.fuse <= 0) return@forEachWithSelf
+
+                        val pos = tnt.box.center.add(0.0, ShowTimer.renderY.toDouble(), 0.0)
+
+                        val screenPos = WorldToScreen.calculateScreenPos(pos) ?: return@forEachWithSelf
+
+                        // Yellow #ffff00 -> Red #ff0000
+                        val color = Color4b(255, MathHelper.floor(255F * tnt.fuse / DEFAULT_FUSE).coerceAtMost(255), 0)
+
+                        // ticks to seconds
+                        val text = process(
+                            ShowTimer.timeUnit.apply(tnt.fuse),
+                            color,
+                        )
+
+                        val width = text.widthWithShadow
+
+                        withMatrixStack {
+                            // text
+                            translate(screenPos.x, screenPos.y, 1000.0F * i / self.size)
+                            scale(fontScale, fontScale, 1.0F)
+
+                            draw(
+                                text,
+                                -0.5F * width,
+                                -0.5F * height,
+                                shadow = true,
+                                z = 0.001F,
+                            )
+
+                            commit(buf)
+
+                            // background
+                            val q1 = Vec3(-0.6F * width, -0.55F * height, 0.0F)
+                            val q2 = Vec3(0.6F * width, 0.55f * height, 0.0F)
+
+                            withColor(Color4b(0, 0, 0, 120)) {
+                                drawQuad(q1, q2)
+                            }
+
+                            // border
+                            if (ShowTimer.border) {
+                                withColor(color) {
+                                    drawQuadOutlines(q1, q2)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     init {
@@ -97,65 +159,4 @@ object ModuleTNTTimer : ClientModule("TNTTimer", Category.RENDER) {
         super.onDisabled()
     }
 
-    @Suppress("unused")
-    private val render2DHandler = handler<OverlayRenderEvent> {
-        if (!ShowTimer.enabled) return@handler
-
-        renderEnvironmentForGUI {
-            FontManager.FONT_RENDERER.withBuffers { buf ->
-                val c = size
-                val fontScale = 1.0F / (c * 0.15F) * ShowTimer.scale
-
-                tntEntities.forEachWithSelf { tnt, i, self ->
-                    if (tnt.fuse <= 0) return@forEachWithSelf
-
-                    val pos = tnt.box.center.add(0.0, ShowTimer.renderY.toDouble(), 0.0)
-
-                    val screenPos = WorldToScreen.calculateScreenPos(pos) ?: return@forEachWithSelf
-
-                    // Yellow #ffff00 -> Red #ff0000
-                    val color = Color4b(255, MathHelper.floor(255F * tnt.fuse / DEFAULT_FUSE).coerceAtMost(255), 0)
-
-                    // ticks to seconds
-                    val text = process(
-                        ShowTimer.timeUnit.apply(tnt.fuse),
-                        color,
-                    )
-
-                    val width = text.widthWithShadow
-
-                    withMatrixStack {
-                        // text
-                        translate(screenPos.x, screenPos.y, 1000.0F * i / self.size)
-                        scale(fontScale, fontScale, 1.0F)
-
-                        draw(
-                            text,
-                            -0.5F * width,
-                            -0.5F * height,
-                            shadow = true,
-                            z = 0.001F,
-                        )
-
-                        commit(buf)
-
-                        // background
-                        val q1 = Vec3(-0.6F * width, -0.55F * height, 0.0F)
-                        val q2 = Vec3(0.6F * width, 0.55f * height, 0.0F)
-
-                        withColor(Color4b(0, 0, 0, 120)) {
-                            drawQuad(q1, q2)
-                        }
-
-                        // border
-                        if (ShowTimer.border) {
-                            withColor(color) {
-                                drawQuadOutlines(q1, q2)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
