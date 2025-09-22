@@ -41,54 +41,60 @@ import net.minecraft.client.resource.language.I18n
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 import net.ccbluex.liquidbounce.utils.client.mc
+import net.ccbluex.liquidbounce.utils.math.sq
+import net.minecraft.util.math.Vec2f
+import org.joml.Vector2f
+import org.joml.component1
+import org.joml.component2
+import kotlin.math.sqrt
 
 private object EnchantmentDisplayHelper {
-    private val enchantmentAbbreviationCache = LruCache<RegistryKey<Enchantment>, String>(100)
-    
+    private val enchantmentAbbreviationCache = LruCache<RegistryKey<Enchantment>, String>(128)
+
     private val knownCurses = setOf(
         Enchantments.BINDING_CURSE,
         Enchantments.VANISHING_CURSE
     )
-    
+
     fun getEnchantmentInfo(enchantment: RegistryKey<Enchantment>): EnchantmentInfo {
         return EnchantmentInfo(
             displayName = getAbbreviation(enchantment),
             isCurse = isCurse(enchantment)
         )
     }
-    
+
     private fun getEnchantmentName(enchantment: RegistryKey<Enchantment>): String {
         val idPath = enchantment.value.toString().substringAfter(':')
         val translationKey = "enchantment.minecraft.$idPath"
         return I18n.translate(translationKey)
     }
-    
+
     private fun getSingleWordAbbreviation(word: String): String = word.take(3)
-    
-    private fun getInitialsAbbreviation(words: List<String>): String = 
+
+    private fun getInitialsAbbreviation(words: List<String>): String =
         words.joinToString("") { it.first().toString() }
-    
+
     private fun getCompoundAbbreviation(words: List<String>): String {
         val firstWord = words[0]
-        
+
         if (firstWord.length >= 3) {
             return firstWord.take(3)
         }
-        
+
         val remainingChars = 3 - firstWord.length
         return firstWord + words.getOrNull(1)?.take(remainingChars).orEmpty()
     }
-    
+
     private fun processMultiWordName(words: List<String>): String {
         val initials = getInitialsAbbreviation(words)
-        
+
         return if (initials.length >= 3) {
             initials
         } else {
             getCompoundAbbreviation(words)
         }
     }
-    
+
     private fun processName(name: String): String {
         if (name.length <= 3) {
             return name
@@ -99,20 +105,21 @@ private object EnchantmentDisplayHelper {
         return if (words.size >= 2) {
             processMultiWordName(words)
         } else {
-            getSingleWordAbbreviation(words.getOrNull(0) ?: "")
+            getSingleWordAbbreviation(words.getOrNull(0).orEmpty())
         }
     }
-    
+
     private fun getAbbreviation(enchantment: RegistryKey<Enchantment>): String {
         return enchantmentAbbreviationCache.getOrPut(enchantment) {
             val name = getEnchantmentName(enchantment)
             processName(name)
         }
     }
-    
+
     private fun isCurse(enchantment: RegistryKey<Enchantment>): Boolean = enchantment in knownCurses
 }
 
+@JvmRecord
 private data class EnchantmentInfo(
     val displayName: String,
     val isCurse: Boolean = false
@@ -200,25 +207,24 @@ object NametagEnchantmentRenderer {
 
         if (columnData.isNotEmpty()) {
             // Add this position to the drawn areas list
-            ModuleNametags.drawnEnchantmentAreas.add(Pair(worldX, worldY))
+            ModuleNametags.drawnEnchantmentAreas.add(Vector2f(worldX, worldY))
             drawEnchantmentColumns(env, worldX, worldY, fontRenderer, columnData)
         }
     }
-    
+
     // Check if a position would be occluded by another enchantment panel
     private fun isPositionOccluded(x: Float, y: Float): Boolean {
-        val OCCLUSION_THRESHOLD = 2f
-        
+        val OCCLUSION_THRESHOLD_SQUARED = 2f.sq()
+
         return ModuleNametags.drawnEnchantmentAreas.any { (existingX, existingY) ->
-            val distance = Math.sqrt(((existingX - x) * (existingX - x) + 
-                                     (existingY - y) * (existingY - y)).toDouble()).toFloat()
-            distance < OCCLUSION_THRESHOLD
+            val distanceSq = (existingX - x).sq() + (existingY - y).sq()
+            distanceSq < OCCLUSION_THRESHOLD_SQUARED
         }
     }
 
     private fun processItemEnchantments(itemStack: ItemStack): List<EnchantCell> {
         val enchantmentList = mutableListOf<Pair<EnchantmentInfo, Int>>()
-        
+
         for (enchantmentKey in supportedEnchantments) {
             val level = itemStack.getEnchantment(enchantmentKey)
             if (level > 0) {
@@ -378,13 +384,13 @@ object NametagEnchantmentRenderer {
             ShaderProgramKeys.POSITION_COLOR
         ) { matrix ->
             val bgColor = Color4b.BLACK.with(a = 120).toARGB()
-            
+
             vertex(matrix, rect.x1, rect.y1, 0.0f).color(bgColor)
             vertex(matrix, rect.x1, rect.y2, 0.0f).color(bgColor)
             vertex(matrix, rect.x2, rect.y2, 0.0f).color(bgColor)
             vertex(matrix, rect.x2, rect.y1, 0.0f).color(bgColor)
         }
-        
+
         // Still drawing the border lines
         env.drawCustomMesh(
             DrawMode.DEBUG_LINES,

@@ -25,13 +25,13 @@ import net.ccbluex.liquidbounce.event.events.WorldChangeEvent
 import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.ClientModule
-import net.ccbluex.liquidbounce.render.FontManager
 import net.ccbluex.liquidbounce.render.FontManager.font
 import net.ccbluex.liquidbounce.render.RenderEnvironment
 import net.ccbluex.liquidbounce.render.renderEnvironmentForGUI
 import net.ccbluex.liquidbounce.utils.entity.RenderedEntities
 import net.ccbluex.liquidbounce.utils.kotlin.EventPriorityConvention.FIRST_PRIORITY
 import net.ccbluex.liquidbounce.utils.math.sq
+import org.joml.Vector2f
 import kotlin.math.abs
 
 /**
@@ -46,7 +46,7 @@ object ModuleNametags : ClientModule("Nametags", Category.RENDER) {
     val scale by float("Scale", 2F, 0.25F..4F)
     private val maximumDistance by float("MaximumDistance", 100F, 1F..256F)
 
-    internal val drawnEnchantmentAreas = mutableListOf<Pair<Float, Float>>()
+    internal val drawnEnchantmentAreas = mutableListOf<Vector2f>()
 
     val fontRenderer get() = font.renderer
 
