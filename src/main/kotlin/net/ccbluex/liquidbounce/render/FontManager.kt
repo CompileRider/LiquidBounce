@@ -110,10 +110,6 @@ object FontManager {
      */
     internal fun fontFace(name: String) = fontFaces[name]
 
-    init {
-        addFontFace(COMMON_FONT)
-    }
-
     /**
      * Since our font renderer does not support dynamic font size changes,
      * we will use 43 as the default font size.
