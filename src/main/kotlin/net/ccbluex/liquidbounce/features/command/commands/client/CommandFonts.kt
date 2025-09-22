@@ -45,9 +45,9 @@ import net.ccbluex.liquidbounce.utils.client.regular
 import net.ccbluex.liquidbounce.utils.client.variable
 import net.ccbluex.liquidbounce.utils.client.withColor
 import net.minecraft.util.Formatting
+import okio.Buffer
+import java.awt.GraphicsEnvironment
 import java.io.File
-import java.io.InputStream
-import java.net.URI
 
 /**
  * Fonts Command
@@ -63,69 +63,76 @@ object CommandFonts : Command.Factory {
             .subcommand(listSubcommand())
             .build()
 
-    private val URI_PREFIX_LIST = listOf("file:///", "http://", "https://")
+    private fun addSubcommand() = CommandBuilder.begin("add")
+        .hub()
+        .subcommand(addSystemSubcommand())
+        .subcommand(addFileSubcommand())
+        .subcommand(addUrlSubcommand())
+        .build()
 
-    private fun addSubcommand() = buildCommand("add") {
-        // TODO: add system/file/url xxxx
-        val source = addParam("source") {
+    private fun Command.fontAdded(fontFace: FontManager.FontFace) {
+        chat("Added font: ${fontFace.name}", this)
+    }
+
+    private fun addSystemSubcommand() = buildCommand("system") {
+        val name = addParam("name") {
             verifiedBy(ParameterBuilder.STRING_VALIDATOR)
-                .autocompletedFrom { URI_PREFIX_LIST }
+                .autocompletedFrom {
+                    GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames.asList()
+                }
                 .required()
                 .vararg()
         }
 
         suspendHandler {
-            fun loaded(fontFace: FontManager.FontFace) {
-                chat("Loaded font: ${fontFace.name}", command)
-            }
-
-            suspend fun load(file: File) {
-                val fontFace = FontManager.queueFontFromFile(file) ?: throw CommandException("Failed to load font from file ${file.absolutePath}, check log for details".asText())
-                loaded(fontFace)
-            }
-
-            val source = source.castVararg().joinToString(" ")
-            val uri = try {
-                URI(source)
-            } catch (e: Exception) {
-                // Invalid URI -> try as file
-                var file = File(source)
-                if (!file.isAbsolute) file = file.relativeTo(ConfigSystem.rootFolder)
-                load(file)
-                return@suspendHandler
-            }
-
+            val fontName = name.castVararg().joinToString(" ")
             try {
-                when (uri.scheme) {
-                    "file" -> {
-                        val file = File(uri)
-                        load(file)
-                    }
-
-                    "http", "https" ->
-                        withContext(Dispatchers.IO) {
-                            HttpClient.request(
-                                url = uri.toASCIIString(),
-                                method = HttpMethod.GET,
-                            ).parse<InputStream>().use { stream ->
-                                loaded(FontManager.queueFontFromStream(stream))
-                            }
-                        }
-
-                    else -> throw CommandException(
-                        text = "Unknown font source scheme: ${uri.scheme}, You can use URI starts with: ${
-                            URI_PREFIX_LIST.joinToString(
-                                ", "
-                            )
-                        }.".asText(),
-                        usageInfo = URI_PREFIX_LIST
-                    )
-                }
-            } catch (e: CommandException) {
-                throw e
+                val font = FontManager.queueSystemFont(fontName)
+                command.fontAdded(font)
             } catch (e: Exception) {
-                logger.warn("Failed to load font from URL ${uri.toASCIIString()}", e)
-                throw CommandException("Failed to load font from URL ${uri.toASCIIString()}, check log for details".asText(), e)
+                logger.error("Failed to load font '${fontName}'", e)
+                throw CommandException("Failed to load font '${fontName}', check log for details".asText(), e)
+            }
+        }
+    }
+
+    private fun addFileSubcommand() = buildCommand("file") {
+        val file = addParam("file") {
+            verifiedBy(ParameterBuilder.STRING_VALIDATOR)
+                .required()
+        }
+
+        suspendHandler {
+            var fontFile = File(file.cast())
+            if (!fontFile.isAbsolute) fontFile = fontFile.relativeTo(ConfigSystem.rootFolder)
+            val font = FontManager.queueFontFromFile(fontFile) ?:
+                throw CommandException("Failed to load font from file '${fontFile}', check log for details".asText())
+            command.fontAdded(font)
+        }
+    }
+
+    private fun addUrlSubcommand() = buildCommand("url") {
+        val url = addParam("url") {
+            verifiedBy(ParameterBuilder.STRING_VALIDATOR)
+                .required()
+                .autocompletedFrom { listOf("http://", "https://") }
+        }
+
+        suspendHandler {
+            val fontUrl = url.cast()
+            try {
+                withContext(Dispatchers.IO) {
+                    HttpClient.request(
+                        url = fontUrl,
+                        method = HttpMethod.GET,
+                    ).parse<Buffer>()
+                }.use { buffer ->
+                    val font = FontManager.queueFontFromStream(buffer.inputStream())
+                    command.fontAdded(font)
+                }
+            } catch (e: Exception) {
+                logger.error("Failed to load font from URL '${fontUrl}'", e)
+                throw CommandException("Failed to load font from URL '${fontUrl}', check log for details".asText(), e)
             }
         }
     }
