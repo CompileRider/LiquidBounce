@@ -137,7 +137,7 @@ object FontManager {
     }
 
     suspend fun queueFontFromFile(file: File): FontFace? {
-        try {
+        return try {
             if (!file.exists()) {
                 logger.warn("Font file ${file.absolutePath} does not exist.")
                 return null
@@ -162,10 +162,10 @@ object FontManager {
             val fontFace = FontFace(font.name, DEFAULT_FONT_SIZE, file)
             // In this case, we have only one style available, which is the plain style.
             fontFace.fillStyle(font, 0)
-            return fontFace.also(::addFontFace)
+            fontFace.also(::addFontFace)
         } catch (e: Exception) {
             logger.warn("Failed to load font from file ${file.absolutePath}", e)
-            return null
+            null
         }
     }
 
