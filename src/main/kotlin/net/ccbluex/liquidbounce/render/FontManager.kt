@@ -132,6 +132,7 @@ object FontManager {
         glyphManager = FontGlyphPageManager(
             baseFonts = fontFaces.values,
             additionalFonts = setOfNotNull(CJK_FONT)
+            // TODO: CJK and COMMON is now base instead of additional (queueSystemFont)
         )
     }
 

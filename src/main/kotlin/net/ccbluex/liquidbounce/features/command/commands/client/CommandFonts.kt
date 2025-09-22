@@ -53,6 +53,9 @@ import java.io.File
  * Fonts Command
  *
  * Browse and add fonts.
+ *
+ * TODO: 1. save added fonts
+ * TODO: 2. reload glyph manager
  */
 object CommandFonts : Command.Factory {
 
