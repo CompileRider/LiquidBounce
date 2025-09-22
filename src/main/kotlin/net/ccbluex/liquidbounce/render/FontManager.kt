@@ -26,6 +26,7 @@ import net.ccbluex.liquidbounce.api.core.AsyncLazy
 import net.ccbluex.liquidbounce.config.types.ChooseListValue
 import net.ccbluex.liquidbounce.config.types.NamedChoice
 import net.ccbluex.liquidbounce.config.types.nesting.Configurable
+import net.ccbluex.liquidbounce.features.module.modules.render.ModuleClickGui
 import net.ccbluex.liquidbounce.render.engine.font.FontGlyphPageManager
 import net.ccbluex.liquidbounce.render.engine.font.FontRenderer
 import net.ccbluex.liquidbounce.utils.client.logger
@@ -62,14 +63,14 @@ object FontManager {
     private val COMMON_FONT by AsyncLazy {
         runCatching {
             when (Util.getOperatingSystem()) {
-                WINDOWS -> systemFont("Segoe UI")
-                OSX -> systemFont("Helvetica")
-                LINUX -> systemFont("DejaVu Sans")
-                else -> systemFont("Arial")
+                WINDOWS -> queueSystemFont("Segoe UI")
+                OSX -> queueSystemFont("Helvetica")
+                LINUX -> queueSystemFont("DejaVu Sans")
+                else -> queueSystemFont("Arial")
             }
         }.onFailure { throwable ->
             logger.error("Failed to load common font.", throwable)
-        }.getOrNull() ?: systemFont("Arial")
+        }.getOrNull() ?: queueSystemFont("Arial")
     }
 
     /**
@@ -78,9 +79,9 @@ object FontManager {
     private val CJK_FONT by AsyncLazy {
         runCatching {
             when (Util.getOperatingSystem()) {
-                WINDOWS -> systemFont("Microsoft YaHei")
-                OSX -> systemFont("PingFang SC")
-                LINUX -> systemFont("Noto Sans CJK")
+                WINDOWS -> queueSystemFont("Microsoft YaHei")
+                OSX -> queueSystemFont("PingFang SC")
+                LINUX -> queueSystemFont("Noto Sans CJK")
                 else -> null // No default CJK font available
             }
         }.onFailure { throwable ->
@@ -101,6 +102,7 @@ object FontManager {
     private fun addFontFace(fontFace: FontFace) {
         fontFaces[fontFace.name] = fontFace
         FONT_VALUES.forEach { it.choices = fontFaces.values }
+        ModuleClickGui.reload()
     }
 
     /**
@@ -133,21 +135,21 @@ object FontManager {
         )
     }
 
-    suspend fun queueFontFromFile(file: File) {
+    suspend fun queueFontFromFile(file: File): FontFace? {
         try {
             if (!file.exists()) {
                 logger.warn("Font file ${file.absolutePath} does not exist.")
-                return
+                return null
             }
 
             if (file.extension.lowercase() != "ttf") {
                 logger.warn("Font file ${file.absolutePath} is not a TrueType font.")
-                return
+                return null
             }
 
             if (fontFaces.values.any { it.file == file }) {
                 logger.warn("Font file ${file.absolutePath} is already loaded.")
-                return
+                return null
             }
 
             val font = Font
@@ -159,21 +161,22 @@ object FontManager {
             val fontFace = FontFace(font.name, DEFAULT_FONT_SIZE, file)
             // In this case, we have only one style available, which is the plain style.
             fontFace.fillStyle(font, 0)
-            addFontFace(fontFace)
+            return fontFace.also(::addFontFace)
         } catch (e: Exception) {
             logger.warn("Failed to load font from file ${file.absolutePath}", e)
+            return null
         }
     }
 
-    suspend fun queueFontFromStream(stream: InputStream) {
+    suspend fun queueFontFromStream(stream: InputStream): FontFace {
         val font = Font.createFont(Font.TRUETYPE_FONT, stream)
             .deriveFont(DEFAULT_FONT_SIZE)
         val fontFace = FontFace(font.name, DEFAULT_FONT_SIZE, null)
         fontFace.fillStyle(font, 0)
-        addFontFace(fontFace)
+        return fontFace.also(::addFontFace)
     }
 
-    private suspend fun systemFont(name: String): FontFace {
+    suspend fun queueSystemFont(name: String): FontFace {
         val fontFace = FontFace(name, DEFAULT_FONT_SIZE)
 
         STYLES.forEachIndexed { index, style ->

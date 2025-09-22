@@ -93,6 +93,7 @@ object CommandManager : Iterable<Command> by commands {
             CommandCenter,
             CommandHelp,
             CommandBinds,
+            CommandFonts,
             CommandClear,
             CommandHide,
             CommandInvsee,
