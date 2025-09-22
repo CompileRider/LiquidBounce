@@ -18,9 +18,14 @@
  */
 package net.ccbluex.liquidbounce.render
 
+import com.google.common.collect.BiMap
+import com.google.common.collect.HashBiMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.ccbluex.liquidbounce.api.core.AsyncLazy
+import net.ccbluex.liquidbounce.config.types.ChooseListValue
+import net.ccbluex.liquidbounce.config.types.NamedChoice
+import net.ccbluex.liquidbounce.config.types.nesting.Configurable
 import net.ccbluex.liquidbounce.render.engine.font.FontGlyphPageManager
 import net.ccbluex.liquidbounce.render.engine.font.FontRenderer
 import net.ccbluex.liquidbounce.utils.client.logger
@@ -32,6 +37,17 @@ import java.io.File
 import java.io.InputStream
 
 object FontManager {
+
+    private val FONT_VALUES = mutableListOf<ChooseListValue<FontFace>>()
+
+    /**
+     * Creates a font value. The choices will be sync with [fontFaces].
+     */
+    fun Configurable.font(name: String) =
+        enumChoice(name, COMMON_FONT, fontFaces.values).apply {
+            FONT_VALUES += this
+            doNotIncludeAlways()
+        }
 
     private val STYLES = intArrayOf(
         Font.BOLD,
@@ -74,11 +90,26 @@ object FontManager {
 
     /**
      * All font faces that are known to the font manager.
+     *
+     * Use [BiMap] because the [BiMap.values] is [Set]. It's not allowed to add same font.
+     *
+     * Note: always add with [addFontFace]!
      */
-    internal val fontFaces = HashMap<String, FontFace>(8).apply { put(COMMON_FONT.name, COMMON_FONT) }
+    val fontFaces: BiMap<String, FontFace>
+        field = HashBiMap.create<String, FontFace>()
 
     private fun addFontFace(fontFace: FontFace) {
         fontFaces[fontFace.name] = fontFace
+        FONT_VALUES.forEach { it.choices = fontFaces.values }
+    }
+
+    /**
+     * Returns the font by the given name.
+     */
+    internal fun fontFace(name: String) = fontFaces[name]
+
+    init {
+        addFontFace(COMMON_FONT)
     }
 
     /**
@@ -86,6 +117,7 @@ object FontManager {
      *
      * TODO: Replaces this with Module-based Font Selection
      */
+    @Deprecated("Replaced with font choice")
     val FONT_RENDERER
         get() = (fontFace("Inter Regular") ?: COMMON_FONT).renderer
 
@@ -103,11 +135,6 @@ object FontManager {
         private set
         get() = requireNotNull(field) { "Glyph manager was not initialized yet!" }
 
-    /**
-     * Returns the font by the given name.
-     */
-    internal fun fontFace(name: String) = fontFaces[name]
-
     internal fun createGlyphManager() {
         glyphManager = FontGlyphPageManager(
             baseFonts = fontFaces.values,
@@ -115,14 +142,14 @@ object FontManager {
         )
     }
 
-    internal suspend fun queueFontFromFile(file: File) {
+    suspend fun queueFontFromFile(file: File) {
         try {
             if (!file.exists()) {
                 logger.warn("Font file ${file.absolutePath} does not exist.")
                 return
             }
 
-            if (file.extension != "ttf") {
+            if (file.extension.lowercase() != "ttf") {
                 logger.warn("Font file ${file.absolutePath} is not a TrueType font.")
                 return
             }
@@ -147,7 +174,7 @@ object FontManager {
         }
     }
 
-    internal suspend fun queueFontFromStream(stream: InputStream) {
+    suspend fun queueFontFromStream(stream: InputStream) {
         val font = Font.createFont(Font.TRUETYPE_FONT, stream)
             .deriveFont(DEFAULT_FONT_SIZE)
         val fontFace = FontFace(font.name, DEFAULT_FONT_SIZE, null)
@@ -164,7 +191,7 @@ object FontManager {
             fontFace.fillStyle(font, index)
         }
 
-        return fontFace
+        return fontFace.also(::addFontFace)
     }
 
     data class FontFace(
@@ -186,11 +213,13 @@ object FontManager {
          * [Font.BOLD] | [Font.ITALIC] -> 3 (Can be null)
          */
         val styles: Array<FontId?> = arrayOfNulls(4)
-    ) {
+    ) : NamedChoice {
+
+        override val choiceName: String get() = name
 
         // We only access it on the main thread so don't do synchronized
         val renderer: FontRenderer by lazy(LazyThreadSafetyMode.NONE) {
-            FontRenderer(this, glyphManager!!)
+            FontRenderer(this, glyphManager)
         }
 
         /**

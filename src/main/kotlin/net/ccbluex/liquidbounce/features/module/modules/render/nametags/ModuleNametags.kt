@@ -26,6 +26,7 @@ import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.ClientModule
 import net.ccbluex.liquidbounce.render.FontManager
+import net.ccbluex.liquidbounce.render.FontManager.font
 import net.ccbluex.liquidbounce.render.RenderEnvironment
 import net.ccbluex.liquidbounce.render.renderEnvironmentForGUI
 import net.ccbluex.liquidbounce.utils.entity.RenderedEntities
@@ -41,13 +42,14 @@ import kotlin.math.abs
 @Suppress("MagicNumber")
 object ModuleNametags : ClientModule("Nametags", Category.RENDER) {
     internal val show by multiEnumChoice("Show", NametagShowOptions.entries)
+    private val font by font("Font")
     val scale by float("Scale", 2F, 0.25F..4F)
     private val maximumDistance by float("MaximumDistance", 100F, 1F..256F)
 
     internal val drawnEnchantmentAreas = mutableListOf<Pair<Float, Float>>()
 
     val fontRenderer
-        get() = FontManager.FONT_RENDERER
+        get() = font.renderer
 
     private val nametagsToRender by computedOn<GameTickEvent, MutableList<Nametag>>(
         initialValue = mutableListOf()

@@ -29,11 +29,17 @@ class ChooseListValue<T : NamedChoice>(
     name: String,
     aliases: Array<String> = emptyArray(),
     defaultValue: T,
-    @Exclude val choices: Set<T>
+    choices: Set<T>,
 ) : Value<T>(name, aliases, defaultValue, ValueType.CHOOSE) {
 
+    @Exclude var choices: Set<T> = choices
+        set(value) {
+            require(inner in value) { "current value $inner must be in $choices" }
+            field = value
+        }
+
     init {
-        require(defaultValue in choices) { "default value must be in [${choices}]" }
+        require(defaultValue in choices) { "default value $defaultValue must be in $choices" }
     }
 
     override fun deserializeFrom(gson: Gson, element: JsonElement) {
@@ -66,6 +72,10 @@ interface NamedChoice {
     val choiceName: String
 
     companion object {
+        @JvmField
+        val ORDER_BY_NAME: Comparator<NamedChoice> =
+            Comparator.comparing({ it.choiceName }, String.CASE_INSENSITIVE_ORDER)
+
         @JvmName("of")
         @JvmStatic
         fun String.asNamedChoice(): NamedChoice = object : NamedChoice {
