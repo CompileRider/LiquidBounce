@@ -19,10 +19,12 @@
 
 <script lang="ts">
     import {listen} from "../../../integration/ws";
-    import type {TextComponent as TTextComponent, Vec3} from "../../../integration/types";
+    import type {PlayerData, TextComponent as TTextComponent, Vec3} from "../../../integration/types";
     import {fade} from "svelte/transition";
     import {flip} from "svelte/animate";
     import TextComponent from "../../menu/common/TextComponent.svelte";
+    import {onMount} from "svelte";
+    import {getPlayerData} from "../../../integration/rest";
 
     let audibleEntries: {
         text: TTextComponent | string;
@@ -34,27 +36,42 @@
 
     listen("subtitlesHudEntries", ({entries}) => {
         audibleEntries = [];
-        audibleEntries.push(...entries);
+        audibleEntries.push(...entries.filter(it => it.sounds.length));
     });
+
+    let playerData: PlayerData | null = null;
+
+    listen("clientPlayerData", ({playerData}) => {
+        playerData = playerData;
+    });
+
+    onMount(() => getPlayerData().then(data => playerData = data));
 </script>
 
-<div class="subtitles-container">
-    {#each audibleEntries as entry (entry.text)}
-        <div class="subtitles-entry" transition:fade={{duration: 200}} animate:flip={{duration: 200}}>
-            <TextComponent textComponent={entry.text} fontSize={14}/>
-        </div>
-    {/each}
-</div>
+{#if audibleEntries.length}
+    <div class="subtitles-container">
+        {#each audibleEntries as entry (entry.text)}
+            <div class="subtitles-entry" transition:fade={{duration: 200}} animate:flip={{duration: 200}}>
+                <TextComponent textComponent={entry.text} fontSize={14}/>
+            </div>
+        {/each}
+    </div>
+{/if}
 
 <style lang="scss">
   .subtitles-container {
-    //position: absolute;
-    //top: 0;
-    //left: 0;
-    //width: 100%;
-    //height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    padding: 4px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .subtitles-entry {
+    display: inline-flex;
+    gap: 2px;
     align-items: center;
     justify-content: center;
   }

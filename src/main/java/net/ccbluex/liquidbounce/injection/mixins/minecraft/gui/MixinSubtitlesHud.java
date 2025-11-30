@@ -45,7 +45,7 @@ public abstract class MixinSubtitlesHud {
 
     @Inject(
         method = "render",
-        at = @At("HEAD"),
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;createNewRootLayer()V", shift = At.Shift.BEFORE),
         cancellable = true
     )
     private void applyTweak(DrawContext context, CallbackInfo ci) {

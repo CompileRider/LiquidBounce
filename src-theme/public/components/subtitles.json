@@ -8,7 +8,7 @@
     "verticalAlignment": "Bottom",
     "verticalOffset": 35
   },
-  "tweak": [
+  "tweaks": [
     "DISABLE_SUBTITLES_HUD"
   ]
 }
