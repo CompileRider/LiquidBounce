@@ -23,6 +23,7 @@ package net.ccbluex.liquidbounce.event.events
 import net.ccbluex.liquidbounce.config.types.NamedChoice
 import net.ccbluex.liquidbounce.event.CancellableEvent
 import net.ccbluex.liquidbounce.event.Event
+import net.ccbluex.liquidbounce.event.EventManager
 import net.ccbluex.liquidbounce.integration.interop.protocol.event.WebSocketEvent
 import net.ccbluex.liquidbounce.utils.client.Nameable
 import net.ccbluex.liquidbounce.utils.movement.DirectionalInput
@@ -34,6 +35,9 @@ import net.minecraft.client.network.ServerInfo
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.option.Perspective
 import net.minecraft.client.session.Session
+import net.minecraft.client.sound.SoundInstance
+import net.minecraft.client.sound.SoundInstanceListener
+import net.minecraft.client.sound.WeightedSoundSet
 import net.minecraft.client.util.InputUtil
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
@@ -170,3 +174,20 @@ class ItemLoreQueryEvent(
     val itemStack: ItemStack,
     val lore: ArrayList<Text>,
 ) : Event()
+
+@Nameable("soundInstance")
+class SoundInstanceEvent(
+    val sound: SoundInstance,
+    val soundSet: WeightedSoundSet,
+    val range: Float,
+) : Event() {
+    companion object Listener : SoundInstanceListener {
+        override fun onSoundPlayed(
+            sound: SoundInstance,
+            soundSet: WeightedSoundSet,
+            range: Float
+        ) {
+            EventManager.callEvent(SoundInstanceEvent(sound, soundSet, range))
+        }
+    }
+}

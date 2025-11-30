@@ -135,6 +135,7 @@ internal val ALL_EVENT_CLASSES: Array<Class<out Event>> = arrayOf(
     PlayerSneakMultiplier::class.java,
     PerspectiveEvent::class.java,
     ItemLoreQueryEvent::class.java,
+    SoundInstanceEvent::class.java,
     EntityEquipmentChangeEvent::class.java,
     ClickGuiValueChangeEvent::class.java,
     BlockAttackEvent::class.java,

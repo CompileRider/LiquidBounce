@@ -38,6 +38,7 @@ import net.ccbluex.liquidbounce.event.EventManager
 import net.ccbluex.liquidbounce.event.events.ClientShutdownEvent
 import net.ccbluex.liquidbounce.event.events.ClientStartEvent
 import net.ccbluex.liquidbounce.event.events.ScreenEvent
+import net.ccbluex.liquidbounce.event.events.SoundInstanceEvent
 import net.ccbluex.liquidbounce.event.handler
 import net.ccbluex.liquidbounce.features.account.AccountManager
 import net.ccbluex.liquidbounce.features.command.CommandManager
@@ -354,6 +355,7 @@ object LiquidBounce : EventListener {
 
         BlurEffectRenderer
         IntegrationListener
+        mc.soundManager.registerListener(SoundInstanceEvent.Listener)
 
         taskManager = TaskManager(ioScope).apply {
             // Either immediately starts browser or spawns a task to request browser dependencies,
