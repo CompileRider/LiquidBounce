@@ -25,6 +25,7 @@
     import TextComponent from "../../menu/common/TextComponent.svelte";
     import {onMount} from "svelte";
     import {getPlayerData} from "../../../integration/rest";
+    import {calculatePlayerRelativeDirection} from "../../../util/math_utils";
 
     let audibleEntries: {
         text: TTextComponent | string;
@@ -32,14 +33,14 @@
             location: Vec3;
             time: number;
         }[];
-    }[] = [];
+    }[] = $state([]);
 
     listen("subtitlesHudEntries", ({entries}) => {
-        audibleEntries = [];
-        audibleEntries.push(...entries.filter(it => it.sounds.length));
+        audibleEntries = entries
+            .filter(it => it.sounds.length);
     });
 
-    let playerData: PlayerData | null = null;
+    let playerData: PlayerData | undefined = $state(undefined);
 
     listen("clientPlayerData", ({playerData}) => {
         playerData = playerData;
@@ -52,7 +53,19 @@
     <div class="subtitles-container">
         {#each audibleEntries as entry (entry.text)}
             <div class="subtitles-entry" transition:fade={{duration: 200}} animate:flip={{duration: 200}}>
-                <TextComponent textComponent={entry.text} fontSize={14}/>
+                {#if playerData}
+                    {@const
+                        directions = entry.sounds.map(sound => calculatePlayerRelativeDirection(playerData, sound.location))}
+                    {#if directions.some(direction => direction && direction > Math.PI)}
+                        <span class="direction">&lt;</span>
+                    {/if}
+                    <TextComponent textComponent={entry.text} fontSize={14}/>
+                    {#if directions.some(direction => direction && direction < Math.PI)}
+                        <span class="direction">&gt;</span>
+                    {/if}
+                {:else}
+                    <TextComponent textComponent={entry.text} fontSize={14}/>
+                {/if}
             </div>
         {/each}
     </div>
@@ -65,14 +78,19 @@
     padding: 4px;
     display: flex;
     flex-direction: column;
+    gap: 2px;
     align-items: center;
     justify-content: center;
   }
 
   .subtitles-entry {
     display: inline-flex;
-    gap: 2px;
+    gap: 4px;
     align-items: center;
     justify-content: center;
+
+    .direction {
+      color: white;
+    }
   }
 </style>
