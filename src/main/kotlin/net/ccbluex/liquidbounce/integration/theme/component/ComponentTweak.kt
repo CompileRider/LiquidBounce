@@ -41,6 +41,7 @@ enum class ComponentTweak(override val choiceName: String) : NamedChoice {
     DISABLE_SCOREBOARD("disableScoreboard"),
     DISABLE_STATUS_BAR("disableStatusBar"),
     DISABLE_EXP_BAR("disableExpBar"),
+    DISABLE_SUBTITLES_HUD("disableSubtitlesHud"),
     DISABLE_HELD_ITEM_TOOL_TIP("disableHeldItemToolTip"),
     DISABLE_OVERLAY_MESSAGE("disableOverlayMessage"),
     DISABLE_STATUS_EFFECT_OVERLAY("disableStatusEffectOverlay"),

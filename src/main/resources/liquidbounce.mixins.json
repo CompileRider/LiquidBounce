@@ -82,6 +82,7 @@
     "minecraft.gui.MixinScreenRect",
     "minecraft.gui.MixinSplashOverlay",
     "minecraft.gui.MixinStringHelper",
+    "minecraft.gui.MixinSubtitlesHud",
     "minecraft.gui.custom.MixinConnectScreen",
     "minecraft.gui.custom.MixinDisconnectedScreen",
     "minecraft.gui.custom.MixinDownloadingTerrainScreen",
