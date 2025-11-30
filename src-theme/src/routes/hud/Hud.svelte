@@ -19,6 +19,7 @@
     import DraggableComponent from "./elements/DraggableComponent.svelte";
     import KeyBinds from "./elements/KeyBinds.svelte";
     import GenericPlayerInventory from "./elements/inventory/GenericPlayerInventory.svelte";
+    import Subtitles from "./elements/Subtitles.svelte";
 
     let zoom = 100;
     let metadata: Metadata;
@@ -93,6 +94,8 @@
                     <img alt="" src="{c.settings.uRL}" style="scale: {c.settings.scale};">
                 {:else if c.name === "KeyBinds"}
                     <KeyBinds/>
+                {:else if c.name === "Subtitles"}
+                    <Subtitles/>
                 {/if}
             </DraggableComponent>
         {/if}

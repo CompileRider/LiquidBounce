@@ -8,7 +8,7 @@ import type {
     Screen,
     Server,
     Session, Setting,
-    TextComponent,
+    TextComponent, Vec3,
 } from "./types";
 
 
@@ -56,6 +56,7 @@ export interface EventMap {
     subtitle: TitleEventSubtitle;
     titleFade: TitleEventFade;
     clearTitle: TitleEventClear;
+    subtitlesHudEntries: SubtitlesHudEntriesEvent;
 
     //GameEvents.kt
     key: KeyEvent;
@@ -258,6 +259,17 @@ export interface TitleEventFade {
 
 export interface TitleEventClear {
     reset: boolean;
+}
+
+export interface SubtitlesHudEntriesEvent {
+    entries: {
+        text: TextComponent | string;
+        range: number;
+        sounds: {
+            location: Vec3;
+            time: number;
+        }[];
+    }[];
 }
 
 export interface VirtualScreenEvent {

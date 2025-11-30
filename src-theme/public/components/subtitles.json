@@ -1,0 +1,14 @@
+{
+  "name": "Subtitles",
+  "enabled": false,
+  "singleton": true,
+  "alignment": {
+    "horizontalAlignment": "Right",
+    "horizontalOffset": 0,
+    "verticalAlignment": "Bottom",
+    "verticalOffset": 35
+  },
+  "tweak": [
+    "DISABLE_SUBTITLES_HUD"
+  ]
+}

@@ -26,7 +26,9 @@ import net.ccbluex.liquidbounce.integration.interop.protocol.event.WebSocketEven
 import net.ccbluex.liquidbounce.integration.interop.protocol.rest.v1.game.PlayerData
 import net.ccbluex.liquidbounce.integration.interop.protocol.rest.v1.game.PlayerInventoryData
 import net.ccbluex.liquidbounce.utils.client.Nameable
+import net.minecraft.client.gui.hud.SubtitlesHud
 import net.minecraft.text.Text
+import net.minecraft.util.math.Vec3d
 
 @Nameable("fps")
 @Suppress("unused")
@@ -60,4 +62,13 @@ sealed class TitleEvent : CancellableEvent(), WebSocketEvent {
 
     @Nameable("clearTitle")
     class Clear(var reset: Boolean) : TitleEvent()
+}
+
+@Nameable("subtitlesHudEntries")
+class SubtitlesHudEntriesEvent(val entries: List<Entry>) : Event(), WebSocketEvent {
+    @JvmRecord
+    data class SoundEntry(val location: Vec3d, val time: Long)
+
+    @JvmRecord
+    data class Entry(val text: Text, val range: Float, val sounds: List<SoundEntry>)
 }
