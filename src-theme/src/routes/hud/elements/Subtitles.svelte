@@ -72,10 +72,13 @@
 {/if}
 
 <style lang="scss">
+  @use "../../../colors.scss" as *;
+
   .subtitles-container {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: $subtitles-base-color;
     border-radius: 5px;
-    padding: 4px;
+    padding: 10px;
+    font-size: 14px;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -90,7 +93,7 @@
     justify-content: center;
 
     .direction {
-      color: white;
+      color: $subtitles-direction-color;
     }
   }
 </style>

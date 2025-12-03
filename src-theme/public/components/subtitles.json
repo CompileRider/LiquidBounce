@@ -4,9 +4,9 @@
   "singleton": true,
   "alignment": {
     "horizontalAlignment": "Right",
-    "horizontalOffset": 0,
+    "horizontalOffset": 15,
     "verticalAlignment": "Bottom",
-    "verticalOffset": 35
+    "verticalOffset": 15
   },
   "tweaks": [
     "DISABLE_SUBTITLES_HUD"
