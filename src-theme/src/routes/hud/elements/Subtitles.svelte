@@ -19,52 +19,41 @@
 
 <script lang="ts">
     import {listen} from "../../../integration/ws";
-    import type {PlayerData, TextComponent as TTextComponent, Vec3} from "../../../integration/types";
+    import type {SoundListenerTransform, SubtitlesHudEntry} from "../../../integration/types";
     import {fade} from "svelte/transition";
     import {flip} from "svelte/animate";
     import TextComponent from "../../menu/common/TextComponent.svelte";
-    import {onMount} from "svelte";
-    import {getPlayerData} from "../../../integration/rest";
-    import {calculatePlayerRelativeDirection} from "../../../util/math_utils";
+    import {crossProduct, dotProduct, minus, normalize} from "../../../util/math_utils";
 
-    let audibleEntries: {
-        text: TTextComponent | string;
-        sounds: {
-            location: Vec3;
-            time: number;
-        }[];
-    }[] = $state([]);
-
-    listen("subtitlesHudEntries", ({entries}) => {
-        audibleEntries = entries
-            .filter(it => it.sounds.length);
+    let soundListenerTransform: SoundListenerTransform = $state({
+        position: {x: 0, y: 0, z: 0},
+        forward: {x: 0, y: 0, z: 0},
+        up: {x: 0, y: 0, z: 0},
     });
+    let audibleEntries: SubtitlesHudEntry[] = $state([]);
 
-    let playerData: PlayerData | undefined = $state(undefined);
+    // SoundListenerTransform#right
+    const right = (soundListenerTransform: SoundListenerTransform) => crossProduct(soundListenerTransform.forward, soundListenerTransform.up);
 
-    listen("clientPlayerData", ({playerData}) => {
-        playerData = playerData;
+    // Handle sound update
+    listen("subtitlesHudEntries", (event) => {
+        soundListenerTransform = event.soundListenerTransform;
+        audibleEntries = event.audibleEntries;
     });
-
-    onMount(() => getPlayerData().then(data => playerData = data));
 </script>
 
 {#if audibleEntries.length}
-    <div class="subtitles-container">
+    <div class="subtitles-container" transition:fade={{duration: 200}}>
         {#each audibleEntries as entry (entry.text)}
+            {@const directions = entry.sounds.map(sound =>
+                dotProduct(normalize(minus(sound.location, soundListenerTransform.position)), right(soundListenerTransform)))}
             <div class="subtitles-entry" transition:fade={{duration: 200}} animate:flip={{duration: 200}}>
-                {#if playerData}
-                    {@const
-                        directions = entry.sounds.map(sound => calculatePlayerRelativeDirection(playerData, sound.location))}
-                    {#if directions.some(direction => direction && direction > Math.PI)}
-                        <span class="direction">&lt;</span>
-                    {/if}
-                    <TextComponent textComponent={entry.text} fontSize={14}/>
-                    {#if directions.some(direction => direction && direction < Math.PI)}
-                        <span class="direction">&gt;</span>
-                    {/if}
-                {:else}
-                    <TextComponent textComponent={entry.text} fontSize={14}/>
+                {#if directions.some(direction => direction && direction > 0)}
+                    <span class="direction">&lt;</span>
+                {/if}
+                <TextComponent textComponent={entry.text} fontSize={14}/>
+                {#if directions.some(direction => direction && direction < 0)}
+                    <span class="direction">&gt;</span>
                 {/if}
             </div>
         {/each}

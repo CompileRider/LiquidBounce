@@ -26,7 +26,7 @@ import net.ccbluex.liquidbounce.integration.interop.protocol.event.WebSocketEven
 import net.ccbluex.liquidbounce.integration.interop.protocol.rest.v1.game.PlayerData
 import net.ccbluex.liquidbounce.integration.interop.protocol.rest.v1.game.PlayerInventoryData
 import net.ccbluex.liquidbounce.utils.client.Nameable
-import net.minecraft.client.gui.hud.SubtitlesHud
+import net.minecraft.client.sound.SoundListenerTransform
 import net.minecraft.text.Text
 import net.minecraft.util.math.Vec3d
 
@@ -65,7 +65,10 @@ sealed class TitleEvent : CancellableEvent(), WebSocketEvent {
 }
 
 @Nameable("subtitlesHudEntries")
-class SubtitlesHudEntriesEvent(val entries: List<Entry>) : Event(), WebSocketEvent {
+class SubtitlesHudEntriesEvent(
+    val soundListenerTransform: SoundListenerTransform,
+    val audibleEntries: List<Entry>,
+) : Event(), WebSocketEvent {
     @JvmRecord
     data class SoundEntry(val location: Vec3d, val time: Long)
 

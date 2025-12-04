@@ -24,11 +24,13 @@ import net.ccbluex.liquidbounce.event.events.SubtitlesHudEntriesEvent;
 import net.ccbluex.liquidbounce.injection.mixins.minecraft.gui.custom.MixinSubtitlesHudEntryAccessor;
 import net.ccbluex.liquidbounce.integration.theme.component.ComponentManager;
 import net.ccbluex.liquidbounce.integration.theme.component.ComponentTweak;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.SubtitlesHud;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -43,6 +45,14 @@ public abstract class MixinSubtitlesHud {
     @Final
     private List<SubtitlesHud.SubtitleEntry> entries;
 
+    @Shadow
+    @Final
+    private MinecraftClient client;
+
+    @Shadow
+    @Final
+    private List<SubtitlesHud.SubtitleEntry> audibleEntries;
+
     @Inject(
         method = "render",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;createNewRootLayer()V", shift = At.Shift.BEFORE),
@@ -55,16 +65,23 @@ public abstract class MixinSubtitlesHud {
     }
 
     @Inject(
-        method = "onSoundPlayed",
+        method = {/*"onSoundPlayed", */"render"},
         at = @At("RETURN")
     )
-    private void onSoundPlayed(CallbackInfo ci) {
-        if (this.entries.isEmpty()) {
-            EventManager.INSTANCE.callEvent(new SubtitlesHudEntriesEvent(List.of()));
+    private void applyEvent(CallbackInfo ci) {
+        liquid_bounce$fireEvent(this.client, this.audibleEntries);
+    }
+
+    @Unique
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void liquid_bounce$fireEvent(MinecraftClient client, List<SubtitlesHud.SubtitleEntry> entries) {
+        var soundListenerTransform = client.getSoundManager().getListenerTransform();
+        if (entries.isEmpty()) {
+            EventManager.INSTANCE.callEvent(new SubtitlesHudEntriesEvent(soundListenerTransform, List.of()));
             return;
         }
 
-        var array = this.entries.toArray(); // Prevent concurrent modification
+        var array = entries.toArray(); // Prevent concurrent modification
         for (int i = 0, arrayLength = array.length; i < arrayLength; i++) {
             var it = array[i];
             var subtitleEntry = (SubtitlesHud.SubtitleEntry & MixinSubtitlesHudEntryAccessor) it;
@@ -90,7 +107,7 @@ public abstract class MixinSubtitlesHud {
         }
 
         EventManager.INSTANCE.callEvent(
-            new SubtitlesHudEntriesEvent((List<SubtitlesHudEntriesEvent.Entry>) (List) Arrays.asList(array))
+            new SubtitlesHudEntriesEvent(soundListenerTransform, (List<SubtitlesHudEntriesEvent.Entry>) (List) Arrays.asList(array))
         );
     }
 

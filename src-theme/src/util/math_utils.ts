@@ -25,6 +25,30 @@ export const distanceSq = (pos1: Vec3, pos2: Vec3): number =>
 export const distance = (pos1: Vec3, pos2: Vec3): number =>
     Math.sqrt(distanceSq(pos1, pos2));
 
+export const normalize = (v: Vec3): Vec3 => {
+    const length = Math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2);
+    return {
+        x: v.x / length,
+        y: v.y / length,
+        z: v.z / length,
+    };
+};
+
+export const minus = (v1: Vec3, v2: Vec3): Vec3 => ({
+    x: v1.x - v2.x,
+    y: v1.y - v2.y,
+    z: v1.z - v2.z,
+});
+
+export const dotProduct = (v1: Vec3, v2: Vec3): number =>
+    v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+
+export const crossProduct = (v1: Vec3, v2: Vec3): Vec3 => ({
+    x: v1.y * v2.z - v1.z * v2.y,
+    y: v1.z * v2.x - v1.x * v2.z,
+    z: v1.x * v2.y - v1.y * v2.x,
+});
+
 /**
  * @param centerX center (zero) X
  * @param centerZ center (zero) Z

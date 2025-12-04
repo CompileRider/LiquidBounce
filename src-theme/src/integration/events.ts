@@ -7,10 +7,9 @@ import type {
     Proxy,
     Screen,
     Server,
-    Session, Setting,
-    TextComponent, Vec3,
+    Session, Setting, SoundListenerTransform, SubtitlesHudEntry,
+    TextComponent,
 } from "./types";
-
 
 
 export interface EventMap {
@@ -262,14 +261,8 @@ export interface TitleEventClear {
 }
 
 export interface SubtitlesHudEntriesEvent {
-    entries: {
-        text: TextComponent | string;
-        range: number;
-        sounds: {
-            location: Vec3;
-            time: number;
-        }[];
-    }[];
+    soundListenerTransform: SoundListenerTransform;
+    audibleEntries: SubtitlesHudEntry[];
 }
 
 export interface VirtualScreenEvent {

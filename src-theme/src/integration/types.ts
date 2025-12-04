@@ -424,6 +424,20 @@ export interface ClientUpdate {
 export interface Browser {
     url: string
 }
+export interface SoundListenerTransform {
+    position: Vec3;
+    forward: Vec3;
+    up: Vec3;
+}
+
+export interface SubtitlesHudEntry {
+    text: TextComponent | string;
+    range: number | 'Infinity' | '-Infinity';
+    sounds: {
+        location: Vec3;
+        time: number;
+    }[];
+}
 
 export interface HitResult {
     type: "block" | "entity" | "miss";
