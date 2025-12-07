@@ -1,7 +1,7 @@
 /*
  * This file is part of LiquidBounce (https://github.com/CCBlueX/LiquidBounce)
  *
- * Copyright (c) 2025 CCBlueX
+ * Copyright (c) 2015 - 2025 CCBlueX
  *
  * LiquidBounce is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,24 +15,23 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with LiquidBounce. If not, see <https://www.gnu.org/licenses/>.
- *
  */
-package net.ccbluex.liquidbounce.integration.backend
 
-import com.mojang.blaze3d.textures.GpuTextureView
+package net.ccbluex.liquidbounce.features.module.modules.render.nametags
 
-/**
- * Represents a texture used by the browser.
- *
- * @param view The texture view object.
- * @param width The width of the texture.
- * @param height The height of the texture.
- * @param bgra Whether the texture is in BGRA format (true) or RGBA format (false).
- */
-@JvmRecord
-data class BrowserTexture(
-    val view: GpuTextureView,
-    val width: Int,
-    val height: Int,
-    val bgra: Boolean
-)
+import net.ccbluex.liquidbounce.config.types.NamedChoice
+import net.minecraft.entity.EquipmentSlot
+
+enum class EquipmentSlotChoice(
+    override val choiceName: String,
+    val slot: EquipmentSlot,
+) : NamedChoice {
+    MAINHAND("Mainhand", EquipmentSlot.MAINHAND),
+    OFFHAND("Offhand", EquipmentSlot.OFFHAND),
+    FEET("Feet", EquipmentSlot.FEET),
+    LEGS("Legs", EquipmentSlot.LEGS),
+    CHEST("Chest", EquipmentSlot.CHEST),
+    HEAD("Head", EquipmentSlot.HEAD),
+    BODY("Body", EquipmentSlot.BODY),
+    SADDLE("Saddle", EquipmentSlot.SADDLE),
+}
