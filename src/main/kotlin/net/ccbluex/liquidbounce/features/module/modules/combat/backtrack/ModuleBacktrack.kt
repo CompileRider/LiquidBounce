@@ -45,7 +45,6 @@ import net.ccbluex.liquidbounce.utils.entity.boxedDistanceTo
 import net.ccbluex.liquidbounce.utils.entity.squareBoxedDistanceTo
 import net.ccbluex.liquidbounce.utils.entity.squaredBoxedDistanceTo
 import net.ccbluex.liquidbounce.utils.render.WireframePlayer
-import net.minecraft.client.renderer.LightTexture
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.network.protocol.game.VecDeltaCodec
@@ -61,6 +60,7 @@ import net.minecraft.network.protocol.game.ClientboundSetHealthPacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 
@@ -222,9 +222,9 @@ object ModuleBacktrack : ClientModule("Backtrack", Category.COMBAT) {
 
             val rs = entityRenderer.createRenderState(entity, event.partialTicks)
 
-            val originalBlockLight = LightTexture.block(rs.lightCoords)
-            val originalSkyLight = LightTexture.sky(rs.lightCoords)
-            rs.lightCoords = LightTexture.pack(
+            val originalBlockLight = LightCoordsUtil.block(rs.lightCoords)
+            val originalSkyLight = LightCoordsUtil.sky(rs.lightCoords)
+            rs.lightCoords = LightCoordsUtil.pack(
                 (originalBlockLight * lightAmount).floorToInt(),
                 (originalSkyLight * lightAmount).floorToInt(),
             )

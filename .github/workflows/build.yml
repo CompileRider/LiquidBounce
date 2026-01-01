@@ -75,11 +75,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Setting up JDK 21
+      - name: Setting up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: 'graalvm'
-          java-version: '21'
+          java-version: '25'
           cache: 'gradle'
       - name: Grant permissions to src-theme
         run: sudo chmod -R 777 src-theme
@@ -123,7 +123,7 @@ jobs:
             -F "lb_version=$LB_VERSION" \
             -F "mc_version=$MINECRAFT_VERSION" \
             -F "subsystem=fabric" \
-            -F "jre_version=21" \
+            -F "jre_version=25" \
             -F "fabric_loader_version=$LOADER_VERSION" \
             -F "fabric_api_version=$FABRICAPI_VERSION" \
             -F "kotlin_version=$KOTLIN_VERSION" \
@@ -139,11 +139,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Setting up JDK 21
+      - name: Setting up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: 'graalvm'
-          java-version: '21'
+          java-version: '25'
           cache: 'gradle'
       - name: Grant permissions to src-theme
         run: sudo chmod -R 777 src-theme

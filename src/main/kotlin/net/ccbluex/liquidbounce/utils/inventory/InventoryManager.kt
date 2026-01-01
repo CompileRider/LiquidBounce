@@ -46,7 +46,7 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import kotlin.math.max
 import kotlin.random.Random
 
@@ -185,7 +185,8 @@ object InventoryManager : EventListener {
                     // the action is a throw action (you cannot miss-click really when throwing)
                     if (index == 0 && action is InventoryAction.Click
                         && constraints.missChance.random() > Random.nextInt(100)
-                        && action.actionType != ClickType.THROW) {
+                        && action.actionType != ContainerInput.THROW
+                    ) {
                         // Simulate a miss click (this is only possible for container-type slots)
                         // TODO: Add support for inventory slots
                         if (action.performMissClick()) {

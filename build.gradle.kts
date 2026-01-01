@@ -19,8 +19,8 @@
 
 import com.github.gradle.node.npm.task.NpmTask
 import com.github.gradle.node.task.NodeTask
+import dev.detekt.gradle.DetektCreateBaselineTask
 import groovy.json.JsonOutput
-import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 plugins {
@@ -38,22 +38,10 @@ base {
     group = project.property("maven_group") as String
 }
 
-/** Includes non-mod dependency recursively in the JAR file */
-val includeDependency: Configuration by configurations.creating
+/** Includes dependency recursively in the JAR file */
+val jij: Configuration by configurations.creating
 
-/** Includes native-only dependency in the JAR file */
-val includeNative: Configuration by configurations.creating
-
-includeDependency.excludeProvidedLibs()
-
-configurations {
-    include.configure {
-        extendsFrom(includeNative)
-    }
-    runtimeOnly.configure {
-        extendsFrom(includeNative)
-    }
-}
+jij.excludeProvidedLibs()
 
 allprojects {
     repositories {
@@ -95,10 +83,6 @@ allprojects {
             name = "NikOverflow"
             url = uri("https://reposilite.nikoverflow.com/releases")
         }
-        maven {
-            name = "ParchmentMC"
-            url = uri("https://maven.parchmentmc.org")
-        }
     }
 }
 
@@ -109,92 +93,79 @@ loom {
 dependencies {
     // Minecraft
     minecraft(libs.minecraft)
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${libs.versions.minecraft.get()}:2025.12.20@zip")
-    })
 
     // Fabric
-    modApi(libs.fabric.loader)
-    modApi(libs.fabric.api)
-    modApi(libs.fabric.kotlin)
+    api(libs.fabric.loader)
+    api(libs.fabric.api)
+    api(libs.fabric.kotlin)
 
     // Mod menu
-    modApi(libs.modmenu)
+    compileOnlyApi(libs.modmenu)
 
     // Recommended mods (on IDE)
-    modApi(libs.sodium)
-    modApi(libs.lithium)
-    modRuntimeOnly(libs.immediatelyFast)
-    modRuntimeOnly(libs.iris)
+//    api(libs.sodium)
+//    api(libs.lithium)
+//    runtimeOnly(libs.immediatelyFast)
+//    runtimeOnly(libs.iris)
 
     // ViaFabricPlus
-    modApi(libs.vfp.api)
-    modRuntimeOnly(libs.vfp)
+    compileOnlyApi(libs.vfp.api)
+//    runtimeOnly(libs.vfp)
 
     // Exploit Preventer
-    modApi(libs.exploitPreventer.api)
-    modRuntimeOnly(libs.exploitPreventer)
+    api(libs.exploitPreventer.api)
+//    runtimeOnly(libs.exploitPreventer)
 
     // Minecraft Authlib
-    includeDependency(libs.mcAuthlib)
+    jij(libs.mcAuthlib)
 
     // JCEF Support
-    modApi(libs.mcef)
+    api(libs.mcef)
     include(libs.mcef)
-    includeDependency(libs.httpServer)
+    jij(libs.httpServer)
 
     // Discord RPC Support
-    includeDependency(libs.discordIpc)
+    jij(libs.discordIpc)
 
     // ScriptAPI
-    includeDependency("net.fabricmc:tiny-mappings-parser:0.3.0+build.17")
-    includeDependency(libs.polyglot)
-    includeDependency(libs.polyglot.js)
-    includeDependency(libs.polyglot.tools)
+    jij(libs.polyglot)
+    jij(libs.polyglot.js)
+    jij(libs.polyglot.tools)
 
     // Machine Learning
-    includeDependency(libs.djl.api)
-    includeDependency(libs.djl.pytorch)
+    jij(libs.djl.api)
+    jij(libs.djl.pytorch)
 
     // HTTP library
-    includeDependency(libs.bundles.okhttp)
+    jij(libs.bundles.okhttp)
 
     // SOCKS5 & HTTP Proxy Support
-    includeDependency(libs.netty.handler.proxy)
+    jij(libs.netty.handler.proxy)
 
     // Update Checker
-    includeDependency(libs.semver4j)
+    jij(libs.semver4j)
 
     // Name Protect
-    includeDependency(libs.ahocorasick)
+    jij(libs.ahocorasick)
 
     // External utils
     compileOnlyApi(libs.fastutil4k.extensionsOnly)
-    includeDependency(libs.fastutil4k.moreCollections)
+    jij(libs.fastutil4k.moreCollections)
 
     // Test libraries
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
 //    testImplementation(libs.fabric.loader.junit)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    afterEvaluate {
-        includeDependency.incoming.resolutionResult.allDependencies.forEach {
-            val apiDependency = dependencies.api(it.requested.toString()) {
-                isTransitive = false
-            }
-
-            dependencies.include(apiDependency)
-        }
-    }
 }
+
+includeTransitiveJijDependencies()
 
 tasks.processResources {
     dependsOn("bundleTheme")
 
     val modVersion = providers.gradleProperty("mod_version")
-    val minecraftVersion = libs.versions.minecraft
+    val minecraftVersion = providers.gradleProperty("mod_mc_version")
     val fabricVersion = libs.versions.fabric.api
     val loaderVersion = libs.versions.fabric.loader
     val minLoaderVersion = libs.versions.fabric.loaderMin
@@ -376,14 +347,10 @@ tasks.jar {
     val archivesBaseName = providers.gradleProperty("archives_base_name")
     val modVersion = providers.gradleProperty("mod_version")
     val mavenGroup = providers.gradleProperty("maven_group")
-    val mappingFiles = provider {
-        rootProject.configurations.mappings.get().map(::zipTree)
-    }
 
     inputs.property("archives_base_name", archivesBaseName)
     inputs.property("mod_version", modVersion)
     inputs.property("maven_group", mavenGroup)
-    inputs.files(mappingFiles).withPropertyName("mappingFiles")
 
     manifest {
         attributes["Main-Class"] = "net.ccbluex.liquidbounce.LiquidInstruction"
@@ -397,10 +364,6 @@ tasks.jar {
         rename {
             "${it}_${archivesBaseName.get()}"
         }
-    }
-
-    from(files(mappingFiles.get())) {
-        include("mappings/mappings.tiny")
     }
 }
 

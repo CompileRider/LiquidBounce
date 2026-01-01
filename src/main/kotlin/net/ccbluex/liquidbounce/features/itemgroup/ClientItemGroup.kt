@@ -21,7 +21,7 @@ package net.ccbluex.liquidbounce.features.itemgroup
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.utils.client.asPlainText
 import net.ccbluex.liquidbounce.utils.client.logger
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
 import net.minecraft.core.registries.BuiltInRegistries
@@ -41,7 +41,7 @@ open class ClientItemGroup(
     // Create item group and assign to minecraft groups
     fun setup(): CreativeModeTab {
         // Expand array
-        val itemGroup = FabricItemGroup.builder()
+        val itemGroup = FabricCreativeModeTab.builder()
             .title(plainName.asPlainText())
             .icon(icon)
             .displayItems { displayContext, entries ->

@@ -25,7 +25,6 @@ import kotlin.Lazy;
 import kotlin.LazyKt;
 import net.ccbluex.liquidbounce.interfaces.MemberRetriever;
 import net.ccbluex.liquidbounce.utils.client.ClientUtilsKt;
-import net.ccbluex.liquidbounce.utils.mappings.EnvironmentRemapper;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,10 +36,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -190,29 +187,7 @@ public abstract class MixinHostClassDesc {
 
     @Unique
     private static @Nullable String remapDescriptor(@Nullable Member member) {
-        if (member == null) {
-            return null;
-        }
-
-        var name = member.getName();
-        var owner = member.getDeclaringClass();
-        var remapped = switch (member) {
-            case Method ignored -> EnvironmentRemapper.INSTANCE.remapMethod(owner, name);
-            case Field ignored -> EnvironmentRemapper.INSTANCE.remapField(owner, name);
-            default -> null;
-        };
-
-        if (remapped == null) {
-            ClientUtilsKt.getLogger().error("Unknown member type {} of class {}", member.getClass().getName(), owner.getName());
-        }
-
-        // If the name is the same, return the original field
-        if (name.equals(remapped)) {
-            return null;
-        }
-
-//        ClientUtilsKt.getLogger().debug("Remapped descriptor: {} in {} to {}", name, member.getDeclaringClass().getName(), remapped);
-        return remapped;
+        return null; // TODO: completely remove remap logic
     }
 
 }

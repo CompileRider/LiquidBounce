@@ -48,8 +48,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.Lightmap;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -85,7 +85,7 @@ public abstract class MixinGameRenderer {
 
     @Shadow
     @Final
-    private LightTexture lightTexture;
+    private Lightmap lightmap;
 
     /**
      * Hook game render event
@@ -110,9 +110,9 @@ public abstract class MixinGameRenderer {
     public void drawItemCharms(ItemInHandRenderer instance, float tickProgress, PoseStack matrices,
         SubmitNodeCollector orderedRenderCommandQueue, LocalPlayer player, int light,
         Operation<Void> original) {
-        ModuleItemChams.INSTANCE.applyToTexture(this.lightTexture.getTextureView());
+        ModuleItemChams.INSTANCE.applyToTexture(this.lightmap.getTextureView());
         original.call(instance, tickProgress, matrices, orderedRenderCommandQueue, player, light);
-        ModuleItemChams.INSTANCE.resetTexture(this.lightTexture.getTextureView());
+        ModuleItemChams.INSTANCE.resetTexture(this.lightmap.getTextureView());
     }
 
     /**
@@ -231,7 +231,7 @@ public abstract class MixinGameRenderer {
         return original;
     }
 
-    @ModifyArgs(method = "getProjectionMatrix", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;perspective(FFFF)Lorg/joml/Matrix4f;", remap = false))
+    @ModifyArgs(method = "getProjectionMatrix", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;perspective(FFFFZ)Lorg/joml/Matrix4f;", remap = false))
     private void hookBasicProjectionMatrix(Args args) {
         if (ModuleAspect.INSTANCE.getRunning()) {
             args.set(1, (float) args.get(1) / ModuleAspect.getRatioMultiplier());

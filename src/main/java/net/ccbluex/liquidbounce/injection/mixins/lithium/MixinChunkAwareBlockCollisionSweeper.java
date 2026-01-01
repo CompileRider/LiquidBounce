@@ -2,7 +2,6 @@ package net.ccbluex.liquidbounce.injection.mixins.lithium;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper;
 import net.ccbluex.liquidbounce.common.ShapeFlag;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.events.BlockShapeEvent;
@@ -16,7 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Pseudo
-@Mixin(value = ChunkAwareBlockCollisionSweeper.class)
+@Mixin(targets = "net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper")
 public abstract class MixinChunkAwareBlockCollisionSweeper {
 
     @Shadow

@@ -19,68 +19,29 @@
 package net.ccbluex.liquidbounce.injection.mixins.minecraft.render;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
 import net.ccbluex.liquidbounce.features.module.modules.render.DoRender;
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleAntiBlind;
-import net.ccbluex.liquidbounce.features.module.modules.render.ModuleCustomAmbience;
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleFullBright;
 import net.ccbluex.liquidbounce.features.module.modules.render.ModuleXRay;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.LightmapRenderStateExtractor;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.core.Holder;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(LightTexture.class)
-public abstract class MixinLightTexture {
-
-    @Shadow
-    @Final
-    private GpuTexture texture;
-
-    /**
-     * @see net.ccbluex.liquidbounce.features.module.modules.render.ModuleItemChams
-     */
-    @ModifyArg(
-        method = "<init>",
-        at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/GpuDevice;createTexture(Ljava/lang/String;ILcom/mojang/blaze3d/textures/TextureFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;"),
-        index = 1
-    )
-    private int makeTextureCopiable(int usage) {
-        return usage | GpuTexture.USAGE_COPY_SRC | GpuTexture.USAGE_COPY_DST;
-    }
-
-    /**
-     * <pre>
-     * this.dirty = false;
-     * </pre>
-     */
-    @Inject(method = "updateLightTexture(F)V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/LightTexture;updateLightTexture:Z", ordinal = 1), cancellable = true)
-    private void injectCustomClearColor(float tickProgress, CallbackInfo ci) {
-        if (ModuleCustomAmbience.CustomLightmap.INSTANCE.getRunning()) {
-            RenderSystem.getDevice().createCommandEncoder()
-                .clearColorTexture(this.texture, ModuleCustomAmbience.CustomLightmap.INSTANCE.getColor().toARGB());
-
-            ci.cancel();
-        }
-    }
+@Mixin(LightmapRenderStateExtractor.class)
+public abstract class MixinLightmapRenderStateExtractor {
 
     /**
      * Target:
      * <pre>
-     *     this.client.options.getGamma().getValue().floatValue()
+     *     float brightnessOption = ((Double)this.minecraft.options.gamma().get()).floatValue();
      * </pre>
      */
-    @ModifyExpressionValue(method = "updateLightTexture(F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;", ordinal = 2))
+    @ModifyExpressionValue(method = "extract", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/OptionInstance;get()Ljava/lang/Object;", ordinal = 1))
     private Object injectXRayFullBright(Object original) {
         // If fullBright is enabled, we need to return our own gamma value
         if (ModuleFullBright.FullBrightGamma.INSTANCE.getRunning()) {
@@ -99,7 +60,7 @@ public abstract class MixinLightTexture {
     }
 
     // Turns off blinking when the darkness effect is active.
-    @Redirect(method = "updateLightTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getEffectBlendFactor(Lnet/minecraft/core/Holder;F)F"))
+    @Redirect(method = "extract", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getEffectBlendFactor(Lnet/minecraft/core/Holder;F)F"))
     private float injectAntiDarkness(LocalPlayer instance, Holder<MobEffect> registryEntry, float v) {
         if (!ModuleAntiBlind.canRender(DoRender.DARKNESS) && registryEntry == MobEffects.DARKNESS) {
             return 0f;

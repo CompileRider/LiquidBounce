@@ -18,12 +18,14 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.render
 
+import com.mojang.blaze3d.textures.GpuTexture
 import net.ccbluex.liquidbounce.config.types.NamedChoice
 import net.ccbluex.liquidbounce.config.types.nesting.ToggleableConfigurable
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.ClientModule
 import net.ccbluex.liquidbounce.render.engine.type.Color4b
 import net.minecraft.client.renderer.fog.FogData
+import net.minecraft.client.renderer.state.LightmapRenderState
 
 /**
  * CustomAmbience module
@@ -81,12 +83,17 @@ object ModuleCustomAmbience : ClientModule("CustomAmbience", Category.RENDER, al
     }
 
     /**
-     * @see net.ccbluex.liquidbounce.injection.mixins.minecraft.render.MixinLightmapTextureManager
+     * @see net.ccbluex.liquidbounce.injection.mixins.minecraft.render.MixinLightmap
      *
      * FIXME: redesign
      */
     object CustomLightmap : ToggleableConfigurable(this, "CustomLightmap", false) {
-        val color by color("Color", Color4b.LIQUID_BOUNCE)
+        private val color by color("Color", Color4b.LIQUID_BOUNCE)
+
+        fun edit(texture: GpuTexture, lightmapRenderState: LightmapRenderState) {
+            gpuDevice.createCommandEncoder().clearColorTexture(texture, color.toARGB())
+        }
+
     }
 
     init {

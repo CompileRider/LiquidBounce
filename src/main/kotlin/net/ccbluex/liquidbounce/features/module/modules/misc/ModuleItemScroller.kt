@@ -28,11 +28,11 @@ import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.blaze3d.platform.Window
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.Slot
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import org.lwjgl.glfw.GLFW
 
 fun interface MouseClick {
-    operator fun invoke(callbackSlot: Slot?, slotId: Int, mouseButton: Int, actionType: ClickType)
+    operator fun invoke(callbackSlot: Slot?, slotId: Int, mouseButton: Int, actionType: ContainerInput)
 }
 
 fun interface ClickAction {
@@ -71,6 +71,6 @@ enum class ClickMode(
     val action: ClickAction
 ) : NamedChoice {
     QUICK_MOVE("QuickMove", { _, slot, callback ->
-        callback(slot, slot.index, GLFW.GLFW_MOUSE_BUTTON_LEFT, ClickType.QUICK_MOVE)
+        callback(slot, slot.index, GLFW.GLFW_MOUSE_BUTTON_LEFT, ContainerInput.QUICK_MOVE)
     })
 }

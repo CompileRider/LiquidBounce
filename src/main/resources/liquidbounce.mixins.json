@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "net.ccbluex.liquidbounce.injection.mixins",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "priority": 1337,
   "mixinPriority": 1337,
   "client": [
@@ -117,7 +117,8 @@
     "minecraft.render.MixinFramerateLimitTracker",
     "minecraft.render.MixinGameRenderer",
     "minecraft.render.MixinLevelRenderer",
-    "minecraft.render.MixinLightTexture",
+    "minecraft.render.MixinLightmap",
+    "minecraft.render.MixinLightmapRenderStateExtractor",
     "minecraft.render.MixinLivingEntityRenderer",
     "minecraft.render.MixinMapRenderer",
     "minecraft.render.MixinOutlineBufferSource",
@@ -142,8 +143,6 @@
     "sodium.MixinSodiumLightDataAccessMixin",
     "truffle.MixinCommonJSRequireBuiltin",
     "truffle.MixinHostClassDesc",
-    "truffle.MixinHostClassLoader",
-    "truffle.MixinHostContext",
     "truffle.MixinNpmCompatibleESModuleLoader",
     "truffle.MixinTruffleLanguage"
   ],
