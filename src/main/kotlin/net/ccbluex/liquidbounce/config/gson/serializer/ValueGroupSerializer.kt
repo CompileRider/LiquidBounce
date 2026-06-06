@@ -32,7 +32,8 @@ import net.ccbluex.liquidbounce.utils.render.Alignment
 import java.lang.reflect.Type
 
 class ValueGroupSerializer(
-    private val withValueType: Boolean, private val includePrivate: Boolean, private val includeNotAnOption: Boolean
+    private val withValueType: Boolean, private val includePrivate: Boolean, private val includeNotAnOption: Boolean,
+    private val includeRender: Boolean = false,
 ) : JsonSerializer<ValueGroup> {
 
     companion object {
@@ -58,7 +59,7 @@ class ValueGroupSerializer(
          */
         @JvmField
         val PUBLIC_SERIALIZER = ValueGroupSerializer(
-            withValueType = false, includePrivate = false, includeNotAnOption = true
+            withValueType = false, includePrivate = false, includeNotAnOption = true, includeRender = false
         )
 
         /**
@@ -124,7 +125,7 @@ class ValueGroupSerializer(
             /**
              * Do not include modules that are heavily user-personalised
              */
-            if (value.category == ModuleCategories.RENDER || value.category == ModuleCategories.FUN) {
+            if (!includeRender && (value.category == ModuleCategories.RENDER || value.category == ModuleCategories.FUN)) {
                 return false
             }
         }

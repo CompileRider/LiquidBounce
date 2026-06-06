@@ -262,9 +262,13 @@ object AutoConfig {
     ) {
         this.includeConfiguration = includeConfiguration
 
+        // Build a Gson that includes RENDER/FUN modules when the user requested it.
+        // Otherwise, fall back to the shared [publicGson] which excludes them by default.
+        val gson = ConfigSystem.publicGson(includeConfiguration.includeRender)
+
         // Store the config
-        val moduleTree = ConfigSystem.serializeValueGroup(ModuleManager.modulesConfig, publicGson)
-        val spooferTree = ConfigSystem.serializeValueGroup(SpooferManager, publicGson)
+        val moduleTree = ConfigSystem.serializeValueGroup(ModuleManager.modulesConfig, gson)
+        val spooferTree = ConfigSystem.serializeValueGroup(SpooferManager, gson)
 
         if (!moduleTree.isJsonObject || !spooferTree.isJsonObject) {
             error("Root element is not a json object")

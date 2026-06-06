@@ -19,10 +19,14 @@
 package net.ccbluex.liquidbounce.config
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.config.gson.fileGson
+import net.ccbluex.liquidbounce.config.gson.publicGson
+import net.ccbluex.liquidbounce.config.gson.serializer.ModeValueGroupSerializer
+import net.ccbluex.liquidbounce.config.gson.serializer.ValueGroupSerializer
 import net.ccbluex.liquidbounce.config.gson.util.parseTree
 import net.ccbluex.liquidbounce.config.types.Config
 import net.ccbluex.liquidbounce.config.types.Value
@@ -238,6 +242,32 @@ object ConfigSystem {
             gson.toJson(valueGroup, ValueGroup::class.javaObjectType, it)
         }
     }
+
+    /**
+     * Builds a Gson instance used for public-facing auto configs.
+     *
+     * When [includeRender] is `true`, modules in the RENDER and FUN categories are
+     * included in the serialized output, otherwise they are excluded. The default
+     * ([includeRender] = `false`) preserves the historical behavior of [publicGson].
+     */
+    @Suppress("FunctionName")  // mirrors the top-level `publicGson` val
+    fun publicGson(includeRender: Boolean = false): Gson =
+        if (!includeRender) {
+            net.ccbluex.liquidbounce.config.gson.publicGson
+        } else {
+            net.ccbluex.liquidbounce.config.gson.publicGson.newBuilder()
+                .registerTypeAdapter(ModeValueGroup::class.java, ModeValueGroupSerializer.FILE_SERIALIZER)
+                .registerTypeHierarchyAdapter(
+                    ValueGroup::class.java,
+                    ValueGroupSerializer(
+                        withValueType = false,
+                        includePrivate = false,
+                        includeNotAnOption = true,
+                        includeRender = true,
+                    )
+                )
+                .create()
+        }
 
     /**
      * Serialize a config to a [JsonObject].
