@@ -22,6 +22,7 @@ package net.ccbluex.liquidbounce.config.gson.serializer
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
+import net.ccbluex.liquidbounce.config.autoconfig.AutoConfig
 import net.ccbluex.liquidbounce.config.types.Value
 import net.ccbluex.liquidbounce.config.types.group.ValueGroup
 import net.ccbluex.liquidbounce.features.module.ClientModule
@@ -88,13 +89,24 @@ class ValueGroupSerializer(
     ) = JsonObject().apply {
         addProperty("name", src.name)
         try {
+            // When includeRender is active and this is a RENDER/FUN module,
+            // bypass all per-value filtering (doNotIncludeWhen for binds/hidden
+            // does not apply to render modules per FR-002).
+            val isRenderModule = src is ClientModule &&
+                (src.category == ModuleCategories.RENDER ||
+                    src.category == ModuleCategories.FUN)
 
             add(
                 "value",
                 context.serialize(
-                    src.inner.filter { includeNotAnOption || !it.notAnOption }
-                        .filter {
-                            includePrivate || checkIfInclude(it)
+                    src.inner
+                        .filter { includeNotAnOption || !it.notAnOption }
+                        .filter { value ->
+                            when {
+                                isRenderModule &&
+                                    AutoConfig.includeConfiguration.includeRender -> true
+                                else -> includePrivate || checkIfInclude(value)
+                            }
                         }
                 )
             )
@@ -110,27 +122,12 @@ class ValueGroupSerializer(
     /**
      * Checks if value should be included in public config
      */
-    private fun checkIfInclude(value: Value<*>): Boolean {
-        /**
-         * Do not include values that are not supposed to be shared
-         * with other users
-         */
-        if (value.doNotInclude.asBoolean) {
-            return false
-        }
-
-        // Might check if value is module
-        if (value is ClientModule) {
-            /**
-             * Do not include modules that are heavily user-personalised
-             */
-            if (value.category == ModuleCategories.RENDER || value.category == ModuleCategories.FUN) {
-                return false
-            }
-        }
-
-        // Otherwise include value
-        return true
+    private fun checkIfInclude(value: Value<*>): Boolean = when {
+        value.doNotInclude.asBoolean -> false
+        value is ClientModule && (value.category == ModuleCategories.RENDER ||
+            value.category == ModuleCategories.FUN) ->
+            AutoConfig.includeConfiguration.includeRender
+        else -> true
     }
 
 }
