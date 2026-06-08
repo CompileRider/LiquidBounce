@@ -24,8 +24,6 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import net.ccbluex.liquidbounce.config.types.Value
 import net.ccbluex.liquidbounce.config.types.group.ValueGroup
-import net.ccbluex.liquidbounce.features.module.ClientModule
-import net.ccbluex.liquidbounce.features.module.ModuleCategories
 import net.ccbluex.liquidbounce.utils.client.logger
 import net.ccbluex.liquidbounce.utils.text.toLowerCamelCase
 import net.ccbluex.liquidbounce.utils.render.Alignment
@@ -88,14 +86,12 @@ class ValueGroupSerializer(
     ) = JsonObject().apply {
         addProperty("name", src.name)
         try {
-
             add(
                 "value",
                 context.serialize(
-                    src.inner.filter { includeNotAnOption || !it.notAnOption }
-                        .filter {
-                            includePrivate || checkIfInclude(it)
-                        }
+                    src.inner
+                        .filter { includeNotAnOption || !it.notAnOption }
+                        .filter { includePrivate || checkIfInclude(it) }
                 )
             )
         } catch (e: Exception) {
@@ -110,27 +106,6 @@ class ValueGroupSerializer(
     /**
      * Checks if value should be included in public config
      */
-    private fun checkIfInclude(value: Value<*>): Boolean {
-        /**
-         * Do not include values that are not supposed to be shared
-         * with other users
-         */
-        if (value.doNotInclude.asBoolean) {
-            return false
-        }
-
-        // Might check if value is module
-        if (value is ClientModule) {
-            /**
-             * Do not include modules that are heavily user-personalised
-             */
-            if (value.category == ModuleCategories.RENDER || value.category == ModuleCategories.FUN) {
-                return false
-            }
-        }
-
-        // Otherwise include value
-        return true
-    }
+    private fun checkIfInclude(value: Value<*>): Boolean = !value.doNotInclude.asBoolean
 
 }

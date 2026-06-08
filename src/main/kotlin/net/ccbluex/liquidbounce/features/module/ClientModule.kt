@@ -68,6 +68,12 @@ open class ClientModule(
 
     protected val logger = clientLogger("Module/$name")
 
+    init {
+        if (category == ModuleCategories.RENDER || category == ModuleCategories.FUN) {
+            doNotIncludeWhen { !AutoConfig.includeConfiguration.includeRender }
+        }
+    }
+
     override val debugDisplayName: Component
         get() = this.name.asPlainText(Style.EMPTY + ChatFormatting.GOLD + ChatFormatting.BOLD)
 
