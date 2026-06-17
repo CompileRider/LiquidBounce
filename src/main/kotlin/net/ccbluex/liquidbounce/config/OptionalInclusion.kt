@@ -17,7 +17,7 @@
  * along with LiquidBounce. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.ccbluex.liquidbounce.config.autoconfig
+package net.ccbluex.liquidbounce.config
 
 /**
  * Groups of settings that can be optionally included or excluded during configuration saving.

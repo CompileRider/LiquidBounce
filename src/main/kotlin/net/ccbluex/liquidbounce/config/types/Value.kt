@@ -26,7 +26,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import net.ccbluex.liquidbounce.config.autoconfig.AutoConfig
-import net.ccbluex.liquidbounce.config.autoconfig.OptionalInclusion
+import net.ccbluex.liquidbounce.config.OptionalInclusion
 import net.ccbluex.liquidbounce.config.gson.stategies.Exclude
 import net.ccbluex.liquidbounce.config.gson.stategies.ProtocolExclude
 import net.ccbluex.liquidbounce.config.types.group.ModeValueGroup
@@ -141,10 +141,7 @@ open class Value<T : Any>(
         val group = inclusionGroup ?: return true
         val includeConfiguration = AutoConfig.includeConfiguration
 
-        return when (group) {
-            OptionalInclusion.RENDER -> includeConfiguration.includeRender
-            OptionalInclusion.FUN -> includeConfiguration.includeFun
-        }
+        return group in includeConfiguration.optionalInclusions
     }
 
     @Exclude

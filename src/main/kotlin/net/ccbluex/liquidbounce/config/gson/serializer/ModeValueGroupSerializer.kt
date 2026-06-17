@@ -23,7 +23,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import net.ccbluex.liquidbounce.config.autoconfig.AutoConfig
-import net.ccbluex.liquidbounce.config.autoconfig.OptionalInclusion
+import net.ccbluex.liquidbounce.config.OptionalInclusion
 import net.ccbluex.liquidbounce.config.types.Value
 import net.ccbluex.liquidbounce.config.types.group.Mode
 import net.ccbluex.liquidbounce.config.types.group.ModeValueGroup
@@ -79,7 +79,7 @@ class ModeValueGroupSerializer private constructor(
         )
 
         @JvmField
-        val PUBLIC_SERIALIZER = ModeValueGroupSerializer(
+        val PUBLIC_CONFIG_SERIALIZER = ModeValueGroupSerializer(
             withValueType = false, includePrivate = false, includeNotAnOption = true
         )
     }

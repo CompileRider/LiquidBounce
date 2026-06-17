@@ -18,7 +18,7 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
-import net.ccbluex.liquidbounce.config.autoconfig.OptionalInclusion
+import net.ccbluex.liquidbounce.config.OptionalInclusion
 import java.util.TreeMap
 
 object ModuleCategories {
