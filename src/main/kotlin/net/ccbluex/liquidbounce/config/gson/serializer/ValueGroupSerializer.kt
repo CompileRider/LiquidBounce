@@ -22,6 +22,8 @@ package net.ccbluex.liquidbounce.config.gson.serializer
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
+import net.ccbluex.liquidbounce.config.autoconfig.AutoConfig
+import net.ccbluex.liquidbounce.config.autoconfig.OptionalInclusion
 import net.ccbluex.liquidbounce.config.types.Value
 import net.ccbluex.liquidbounce.config.types.group.ValueGroup
 import net.ccbluex.liquidbounce.utils.client.logger
@@ -91,7 +93,7 @@ class ValueGroupSerializer(
                 context.serialize(
                     src.inner
                         .filter { includeNotAnOption || !it.notAnOption }
-                        .filter { includePrivate || checkIfInclude(it) }
+                        .filter { includePrivate || it.checkIfInclude() }
                 )
             )
         } catch (e: Exception) {
@@ -102,10 +104,5 @@ class ValueGroupSerializer(
             add("valueType", context.serialize(src.valueType))
         }
     }
-
-    /**
-     * Checks if value should be included in public config
-     */
-    private fun checkIfInclude(value: Value<*>): Boolean = !value.doNotInclude.asBoolean
 
 }

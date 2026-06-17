@@ -69,8 +69,8 @@ open class ClientModule(
     protected val logger = clientLogger("Module/$name")
 
     init {
-        if (category == ModuleCategories.RENDER || category == ModuleCategories.FUN) {
-            doNotIncludeWhen { !AutoConfig.includeConfiguration.includeRender }
+        category.inclusionGroup?.let { group ->
+            this.inclusionGroup(group)
         }
     }
 

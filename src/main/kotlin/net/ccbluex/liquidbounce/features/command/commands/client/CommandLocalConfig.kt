@@ -113,7 +113,7 @@ object CommandLocalConfig : Command.Factory {
         .parameter(
             ParameterBuilder.begin<String>("include")
                 .verifiedBy(ParameterBuilder.STRING_VALIDATOR)
-                .autocompletedFrom { listOf("binds", "hidden", "render") }
+                .autocompletedFrom { listOf("binds", "hidden", "render", "fun") }
                 .vararg()
                 .optional()
                 .build()
@@ -133,6 +133,7 @@ object CommandLocalConfig : Command.Factory {
                 includeBinds = include.contains("binds"),
                 includeHidden = include.contains("hidden"),
                 includeRender = include.contains("render"),
+                includeFun = include.contains("fun"),
             )
 
             val file = ConfigSystem.userConfigsFolder.resolve("$name.json")

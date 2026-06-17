@@ -97,6 +97,14 @@ class ModeValueGroup<T : Mode>(
         this.setAndUpdate(defaultMode)
     }
 
+    override fun inclusionGroup(group: OptionalInclusion) = apply {
+        super.inclusionGroup(group)
+
+        for (m in modes) {
+            m.inclusionGroup(group)
+        }
+    }
+
     @ScriptApiRequired
     fun getModeStrings(): Array<String> = modes.mapToArray { it.name }
 

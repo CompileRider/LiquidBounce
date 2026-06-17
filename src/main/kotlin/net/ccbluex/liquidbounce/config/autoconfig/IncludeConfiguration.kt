@@ -25,6 +25,7 @@ data class IncludeConfiguration(
     val includeAction: Boolean = false,
     val includeHidden: Boolean = false,
     val includeRender: Boolean = false,
+    val includeFun: Boolean = false,
 ) {
     companion object {
         @JvmField
